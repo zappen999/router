@@ -71,7 +71,7 @@ class Router
      * @param string $pattern A route pattern such as /about/system
      * @param object|callable $fn The handling function to be executed
      */
-    public function match($methods, $pattern, $fn)
+    public function match($methods, $pattern, $fn, ...$deps)
     {
         $pattern = $this->baseRoute . '/' . trim($pattern, '/');
         $pattern = $this->baseRoute ? rtrim($pattern, '/') : $pattern;
@@ -79,7 +79,8 @@ class Router
         foreach (explode('|', $methods) as $method) {
             $this->afterRoutes[$method][] = array(
                 'pattern' => $pattern,
-                'fn' => $fn
+                'fn' => $fn,
+                'deps' => $deps
             );
         }
     }
@@ -90,7 +91,7 @@ class Router
      * @param string $pattern A route pattern such as /about/system
      * @param object|callable $fn The handling function to be executed
      */
-    public function all($pattern, $fn)
+    public function all($pattern, $fn, ...$deps)
     {
         $this->match('GET|POST|PUT|DELETE|OPTIONS|PATCH|HEAD', $pattern, $fn);
     }
@@ -101,9 +102,9 @@ class Router
      * @param string $pattern A route pattern such as /about/system
      * @param object|callable $fn The handling function to be executed
      */
-    public function get($pattern, $fn)
+    public function get($pattern, $fn, ...$deps)
     {
-        $this->match('GET', $pattern, $fn);
+        $this->match('GET', $pattern, $fn, ...$deps);
     }
 
     /**
@@ -112,9 +113,9 @@ class Router
      * @param string $pattern A route pattern such as /about/system
      * @param object|callable $fn The handling function to be executed
      */
-    public function post($pattern, $fn)
+    public function post($pattern, $fn, ...$deps)
     {
-        $this->match('POST', $pattern, $fn);
+        $this->match('POST', $pattern, $fn, ...$deps);
     }
 
     /**
@@ -123,9 +124,9 @@ class Router
      * @param string $pattern A route pattern such as /about/system
      * @param object|callable $fn The handling function to be executed
      */
-    public function patch($pattern, $fn)
+    public function patch($pattern, $fn, ...$deps)
     {
-        $this->match('PATCH', $pattern, $fn);
+        $this->match('PATCH', $pattern, $fn, ...$deps);
     }
 
     /**
@@ -134,9 +135,9 @@ class Router
      * @param string $pattern A route pattern such as /about/system
      * @param object|callable $fn The handling function to be executed
      */
-    public function delete($pattern, $fn)
+    public function delete($pattern, $fn, ...$deps)
     {
-        $this->match('DELETE', $pattern, $fn);
+        $this->match('DELETE', $pattern, $fn, ...$deps);
     }
 
     /**
@@ -145,9 +146,9 @@ class Router
      * @param string $pattern A route pattern such as /about/system
      * @param object|callable $fn The handling function to be executed
      */
-    public function put($pattern, $fn)
+    public function put($pattern, $fn, ...$deps)
     {
-        $this->match('PUT', $pattern, $fn);
+        $this->match('PUT', $pattern, $fn, ...$deps);
     }
 
     /**
@@ -156,9 +157,9 @@ class Router
      * @param string $pattern A route pattern such as /about/system
      * @param object|callable $fn The handling function to be executed
      */
-    public function options($pattern, $fn)
+    public function options($pattern, $fn, ...$deps)
     {
-        $this->match('OPTIONS', $pattern, $fn);
+        $this->match('OPTIONS', $pattern, $fn, ...$deps);
     }
 
     /**
@@ -334,6 +335,7 @@ class Router
                     // check if class exists, if not just ignore.
                     if (class_exists($controller)) {
                         // first check if is a static method, directly trying to invoke it. if isn't a valid static method, we will try as a normal method invocation.
+                        $params = array_merge($route['deps'], $params);
                         if (call_user_func_array(array(new $controller, $method), $params) === false) {
                             // try call the method as an non-static method. (the if does nothing, only avoids the notice)
                             if (forward_static_call_array(array($controller, $method), $params) === false) ;
